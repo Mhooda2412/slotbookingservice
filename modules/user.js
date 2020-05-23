@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const Slot = require('./slot')
 
 const userSchema = new mongoose.Schema({
     name:{
@@ -41,6 +42,13 @@ const userSchema = new mongoose.Schema({
 },{
     timestamps:true
 
+})
+
+
+userSchema.virtual('slots',{
+    ref:'Slot',
+    localField:'_id',
+    foreignField:'owner'
 })
 
 
@@ -85,6 +93,14 @@ userSchema.pre('save', async function (next){
     next()
 })
 
+
+userSchema.pre('remove',async function (next){
+    const user = this
+
+    await Slot.deleteMany({owner:user._id}) 
+
+    next()
+})
 
 const User = mongoose.model('User',userSchema )
 
